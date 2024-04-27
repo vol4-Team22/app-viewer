@@ -28,14 +28,12 @@ button_css = f"""
 """
 st.markdown(button_css, unsafe_allow_html=True)
 
-# 仮の投稿データといいねの数
 posts = [
     {"title": "投稿1", "content": "投稿1の内容", "likes": 0},
     {"title": "投稿2", "content": "投稿2の内容", "likes": 0},
     {"title": "投稿3", "content": "投稿3の内容", "likes": 0},
 ]
 
-# すべての投稿の題名、いいねボタン、いいねの数、内容を表示
 for post in posts:
     st.markdown(f"<div style='background-color: #fff7ca; padding: 8px; border-radius: 6px;'><h1 style='font-size: 24px;'>{post['title']}</h1></div>", unsafe_allow_html=True)
     
