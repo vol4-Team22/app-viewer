@@ -1,0 +1,26 @@
+/* style.css */
+
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@100;500;700&display=swap');
+
+html, body, [class*="css"] {
+  font-family: 'M PLUS Rounded 1c', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: #091747;
+}
+
+.title {
+  font-size: 20px;
+}
+
+.input {
+  font-size: 16px;
+  background-color: #FFFACD;
+  border: none;
+}
+
+.btn {
+  background-color: #FFA500;
+  color: white;
+  border-radius: 50%;
+}
