@@ -57,7 +57,7 @@ if add_radio == "投稿する":
     if st.button("リプライ"):
         # ここで投稿の処理を行う（例えば、データベースに保存するなど）
         # POSTリクエストに含めるデータ
-        payload = {"title": post_title, "comment": post_comment,"post_id": post_id,}
+        payload = {"title": post_title, "comment": post_comment, "post_id": post_id,}
         # ユーザーが入力したURL
         url = "http://localhost:18000/reply"
         result = post_user_input(url, payload)
@@ -68,24 +68,6 @@ if add_radio == "投稿する":
 
 
 if add_radio == "全ての投稿を見る":
-    # セッションステートの初期化
-    if "data_json" not in st.session_state:
-        st.session_state["data_json"] = []
-    if "data_detail" not in st.session_state:
-        st.session_state["data_detail"] = []
-
-    # GETリクエストにより全ての投稿を取得
-    url = "http://localhost:18000/list"
-    result = get_request(url)
-    st.session_state["data_json"] = json.loads(result)
-
-    # 投稿の詳細を取得
-    lengh_post = len(st.session_state["data_json"])
-    test_list = []
-    for i in range(lengh_post):
-        result_02 = get_request(f"http://localhost:18000/post/{i+1}")
-        test_list.append(json.loads(result_02))
-    st.session_state["data_detail"] = test_list
 
     # タイトルの表示
     st.markdown(
@@ -96,8 +78,32 @@ if add_radio == "全ての投稿を見る":
         """,
         unsafe_allow_html=True,
     )
+    # セッションステートの初期化
+    if "data_json" not in st.session_state:
+        st.session_state["data_json"] = []
+    if "data_detail" not in st.session_state:
+        st.session_state["data_detail"] = []
+
+    # 全ての投稿を取得
+    url = "http://localhost:18000/list"
+    result = get_request(url)
+    posts = json.loads(result)
+
+    # 投稿のリストをループして、各投稿のタイトルをボタンとして表示
+    for post in posts:
+        if st.button(post["title"], key=post["post_id"]):
+            # ボタンがクリックされたら、その投稿の詳細を取得
+            detail_url = f"http://localhost:18000/post/{post['post_id']}"
+            detail_result = get_request(detail_url)
+            detail = json.loads(detail_result)
+
+            # 取得した詳細を表示
+            st.write(f"Title: {detail['title']}")
+            st.write(f"Comment: {detail['comment']}")
+            st.write(f"Created: {detail['created']}")
+            st.write(f"Modified: {detail['modified']}")
     # イラストの表示
-    st.image("image\src\canvas__4_-removebg-preview.webp", width=130)
+    # st.image("image\src\canvas__4_-removebg-preview.webp", width=130)
 
     button_css = f"""
     <style>
