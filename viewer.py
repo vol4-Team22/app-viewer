@@ -16,10 +16,19 @@ def get_request(url):
     except Exception as e:
         return f"Error: {e}"
 
-
+def post_request(url, payload):
+    try:
+        headers = {"Content-Type": "application/json"}
+        response = requests.post(url, data=json.dumps(payload), headers=headers)
+        if response.status_code == 200:
+            return response.text
+        else:
+            return f"Error: {response.status_code}"
+    except Exception as e:
+        return f"Error: {e}"
 # Using "with" notation
 with st.sidebar:
-    add_radio = st.sidebar.selectbox("メニュー", ("投稿する", "全ての投稿を見る", "詳細"))
+    add_radio = st.sidebar.selectbox("メニュー", ("投稿する", "全ての投稿を見る", "返信", "詳細"))
 
 
 if add_radio == "投稿する":
@@ -30,13 +39,13 @@ if add_radio == "投稿する":
             response = requests.post(url, data=json.dumps(payload), headers=headers)
             # レスポンスが成功したかどうかを確認
             if response.status_code == 200:
-                return response.text
+                return st.success("送信が完了しました！")
             else:
-                return f"Error: {response.status_code}"
+                return st.error(f"エラーが発生しました。HTTPステータスコード: {response.status_code}")
         except Exception as e:
-            return f"Error: {e}"
+            return st.error(f"エラーが発生しました。HTTPステータスコード: {response.status_code}")
 
-    st.image("image\src\mikke_logo.jpg", width=260)
+    st.image("./image/src/mikke_logo.jpg", width=260)
     # Google Fontsからフォントをロード
     font_link = 'https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500&display=swap'
     st.markdown(f'<link href="{font_link}" rel="stylesheet">', unsafe_allow_html=True)
@@ -71,8 +80,7 @@ if add_radio == "投稿する":
         # ユーザーが入力したURL
         url = "http://localhost:18000/post"
         result = post_user_input(url, payload)
-        st.text("レスポンス:")
-        st.write(result)
+
 
 
 if add_radio == "全ての投稿を見る":
@@ -96,7 +104,6 @@ if add_radio == "全ての投稿を見る":
     url = "http://localhost:18000/list"
     result = get_request(url)
     posts = json.loads(result)
-
     # 投稿のリストをループして、各投稿のタイトルをボタンとして表示
     for post in posts:
         if st.button(post["title"], key=post["post_id"]):
@@ -116,7 +123,7 @@ if add_radio == "全ての投稿を見る":
 
             # st.write(f"Created: {detail['created']}")
             # st.write(f"Modified: {detail['modified']}")
-    # イラストの表示
+        # イラストの表示
     # st.image("image\src\canvas__4_-removebg-preview.webp", width=130)
 
     button_css = f"""
@@ -160,12 +167,105 @@ if add_radio == "全ての投稿を見る":
         # if st.button("内容を表示", key=button_key):
         #     st.write(post["comment"])
 
+if add_radio == "返信":
 
+    # タイトルの表示
+    st.markdown(
+        """
+        <div style="font-family: 'Arial', sans-serif; font-size: 40px; font-weight: bold;">
+            日常課題をみっけしよう！
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # セッションステートの初期化
+    if "data_json" not in st.session_state:
+        st.session_state["data_json"] = []
+    if "data_detail" not in st.session_state:
+        st.session_state["data_detail"] = []
+
+    # 全ての投稿を取得
+    url = "http://localhost:18000/list"
+    result = get_request(url)
+    posts = json.loads(result)
+
+    # 投稿のタイトルをリストに格納
+    post_titles = [post["title"] for post in posts]
+
+    # ユーザーが投稿のタイトルを選択できるようにする
+    selected_title = st.selectbox("Select a post to reply to", post_titles)
+
+    # 選択された投稿の詳細を取得
+    selected_post = next(post for post in posts if post["title"] == selected_title)
+    detail_url = f"http://localhost:18000/post/{selected_post['post_id']}"
+    detail_result = get_request(detail_url)
+    detail = json.loads(detail_result)
+
+    # 返信のタイトルとコメントを入力
+    reply_title = st.text_input("Reply Title")
+    reply_comment = st.text_area("Reply Comment")
+
+    if st.button("Send Reply"):
+        # 返信を/replyエンドポイントにPOSTリクエストとして送信
+        reply_url = "http://localhost:18000/reply"
+        reply_payload = {
+            "post_id": selected_post['post_id'],
+            "title": reply_title,
+            "comment": reply_comment
+        }
+        response = requests.post(reply_url, data=json.dumps(reply_payload), headers={"Content-Type": "application/json"})
+        if response.status_code == 200:
+            st.success("送信が完了しました！")
+        else:
+            st.error(f"エラーが発生しました。HTTPステータスコード: {response.status_code}")
+        # イラストの表示
+    # st.image("image\src\canvas__4_-removebg-preview.webp", width=130)
+
+    button_css = f"""
+    <style>
+    div.stButton > button:first-child  {{
+        font-weight  : bold                ;/* 文字：太字                   */
+        border       :  4px solid #ffcb4c     ;/* 枠線：黄色で4ピクセルの実線 */
+        border-radius: 8px 8px 8px 8px ;/* 枠線：半径8ピクセルの角丸     */
+        background   : #fff7ca                ;/* 背景色：薄～い黄色            */
+    }}
+    </style>
+    """
+    # CSSを適用するためのmarkdown
+    st.markdown(button_css, unsafe_allow_html=True)
+
+    posts = st.session_state["data_detail"]
+
+    for post in posts:
+        st.markdown(
+            f"<div style='background-color: #fff7ca; padding: 8px; border-radius: 6px;'><h1 style='font-size: 24px;'>{post['title']}</h1></div>",
+            unsafe_allow_html=True,
+        )
+        st.empty()  # 空のコンポーネントを追加
+        st.write(post["comment"])
+        # 一意のキーを生成
+        button_key = str(uuid.uuid4())
+
+        reply_url = f"http://localhost:18000/reply/list/{post['post_id']}"
+        reply_result = get_request(reply_url)
+        reply_result = json.loads(reply_result)
+
+        for i in range(len(reply_result)):
+            st.divider()
+            st.write(f"返信{i+1}")
+            st.write(reply_result[i]["title"])
+            st.write(reply_result[i]["comment"])
+
+
+        st.divider()
+        # クリックで内容を表示
+        # if st.button("内容を表示", key=button_key):
+        #     st.write(post["comment"])
 if add_radio == "詳細":
     btn = st.button("←")
 
     st.title("概要・題名")
-    content = st.text_input("", max_chars=None)
 
     # CSSスタイルの設定
     style = """
@@ -177,24 +277,35 @@ if add_radio == "詳細":
     """
     st.markdown(style, unsafe_allow_html=True)
 
-    user_input_id = st.number_input("投稿ID", min_value=0, max_value=100, step=1)
-    if st.button("キーの詳細テスト"):
-        detail_url = f"http://localhost:18000/post/{user_input_id}"
-        detail_result = get_request(detail_url)
-        detail_result = json.loads(detail_result)
+    # 全ての投稿を取得
+    url = "http://localhost:18000/list"
+    result = get_request(url)
+    posts = json.loads(result)
 
-        st.markdown(
-            f"<div style='background-color: #fff7ca; padding: 8px; border-radius: 6px;'><h1 style='font-size: 24px;'>{detail_result['title']}</h1></div>",
-            unsafe_allow_html=True,
-        )
-        st.write(detail_result["comment"])
+    # 投稿のタイトルをリストに格納
+    post_titles = [post["title"] for post in posts]
 
-        reply_url = f"http://localhost:18000/reply/list/{user_input_id}"
-        reply_result = get_request(reply_url)
-        reply_result = json.loads(reply_result)
+    # ユーザーが投稿のタイトルを選択できるようにする
+    selected_title = st.selectbox("Select a post to reply to", post_titles)
 
-        for i in range(len(reply_result)):
-            st.write(f"返信{i+1}")
-            st.write(reply_result[i]["title"])
-            st.write(reply_result[i]["comment"])
-            st.divider()
+    # 選択された投稿の詳細を取得
+    selected_post = next(post for post in posts if post["title"] == selected_title)
+    detail_url = f"http://localhost:18000/post/{selected_post['post_id']}"
+    detail_result = get_request(detail_url)
+    detail = json.loads(detail_result)
+
+    st.markdown(
+        f"<div style='background-color: #fff7ca; padding: 8px; border-radius: 6px;'><h1 style='font-size: 24px;'>{detail['title']}</h1></div>",
+        unsafe_allow_html=True,
+    )
+    st.write(detail["comment"])
+
+    reply_url = f"http://localhost:18000/reply/list/{selected_post['post_id']}"
+    reply_result = get_request(reply_url)
+    reply_result = json.loads(reply_result)
+
+    for i in range(len(reply_result)):
+        st.write(f"返信{i + 1}")
+        st.write(reply_result[i]["title"])
+        st.write(reply_result[i]["comment"])
+        st.divider()
