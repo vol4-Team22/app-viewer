@@ -4,6 +4,18 @@ import json
 import uuid
 
 
+    # GETリクエストを送信する関数
+def get_request(url):
+    try:
+        response = requests.get(url)
+        # レスポンスが成功したかどうかを確認
+        if response.status_code == 200:
+            return response.text
+        else:
+            return f'Error: {response.status_code}'
+    except Exception as e:
+        return f'Error: {e}'
+
 # Using "with" notation
 with st.sidebar:
     add_radio = st.radio(
@@ -50,29 +62,7 @@ if add_radio=="投稿する":
 
 
 if add_radio=="全ての投稿を見る":
-    # GETリクエストを送信する関数
-    def all_post(url):
-        try:
-            response = requests.get(url)
-            # レスポンスが成功したかどうかを確認
-            if response.status_code == 200:
-                return response.text
-            else:
-                return f'Error: {response.status_code}'
-        except Exception as e:
-            return f'Error: {e}'
-        #詳細を取得する関数
-    def post_detail(url):
-        try:
-            response = requests.get(url)
-            # レスポンスが成功したかどうかを確認
-            if response.status_code == 200:
-                return response.text
-            else:
-                return f'Error: {response.status_code}'
-        except Exception as e:
-            return f'Error: {e}'
-        btn = st.button("←")
+
         
     # セッションステートの初期化
     if "data_json" not in st.session_state:
@@ -82,17 +72,18 @@ if add_radio=="全ての投稿を見る":
 
     # GETリクエストにより全ての投稿を取得
     url = 'http://localhost:18000/list'
-    result = all_post(url)
+    result = get_request(url)
     st.session_state["data_json"] = json.loads(result)
 
     # 投稿の詳細を取得
     lengh_post=len(st.session_state["data_json"])
     test_list=[]
     for i in range(lengh_post):
-        result_02=post_detail(f"http://localhost:18000/post/{i+1}")
+        result_02=get_request(f"http://localhost:18000/post/{i+1}")
         test_list.append(json.loads(result_02))
     st.session_state["data_detail"]=test_list
     
+
     # タイトルの表示
     st.markdown(
         """
@@ -102,9 +93,8 @@ if add_radio=="全ての投稿を見る":
         """,
         unsafe_allow_html=True
     )
-
     # イラストの表示
-    st.image("C:/Users/kanik/Downloads/canvas__4_-removebg-preview.png", width=130)
+    st.image("image\src\canvas__4_-removebg-preview.webp", width=130)
 
 
     button_css = f"""
@@ -117,6 +107,7 @@ if add_radio=="全ての投稿を見る":
     }}
     </style>
     """
+    # CSSを適用するためのmarkdown
     st.markdown(button_css, unsafe_allow_html=True)
 
 
@@ -137,17 +128,8 @@ if add_radio=="全ての投稿を見る":
 
 if add_radio=="詳細":
 
-    def post_detail(url):
-        try:
-            response = requests.get(url)
-            # レスポンスが成功したかどうかを確認
-            if response.status_code == 200:
-                return response.text
-            else:
-                return f'Error: {response.status_code}'
-        except Exception as e:
-            return f'Error: {e}'
-        btn = st.button("←")
+        
+    btn = st.button("←")
 
     st.title("概要・題名")
     content = st.text_input("", max_chars=None)
@@ -164,9 +146,21 @@ if add_radio=="詳細":
 
     user_input_id=st.number_input("投稿ID", min_value=0, max_value=100, step=1)
     if st.button("キーの詳細テスト"):
-        url=f"http://localhost:18000/post/{user_input_id}"
-        result = post_detail(url)
-        st.write(result)
+        detail_url=f"http://localhost:18000/post/{user_input_id}"
+        detail_result = get_request(detail_url)
+        detail_result=json.loads(detail_result)
+        st.markdown(f"<div style='background-color: #fff7ca; padding: 8px; border-radius: 6px;'><h1 style='font-size: 24px;'>{detail_result['title']}</h1></div>", unsafe_allow_html=True)
+        st.write(detail_result['comment'])
+
+
+        reply_url=f"http://localhost:18000/reply/list/{user_input_id}"
+        reply_result = get_request(reply_url)
+        reply_result=json.loads(reply_result)
+        for i in range(len(reply_result)):
+            st.write(f"返信{i+1}")
+            st.write(reply_result[i]['title'])
+            st.write(reply_result[i]['comment'])
+            st.divider()
 
 
 
