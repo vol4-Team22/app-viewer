@@ -1,6 +1,11 @@
 import streamlit as st
 import uuid
 
+from pathlib import Path
+
+image_path = Path("C:/Users/user/Documents/GitHub/mikke-viewer/canvas__4_-removebg-preview.png")
+
+
 # タイトルの表示
 st.markdown(
     """
@@ -12,7 +17,7 @@ st.markdown(
 )
 
 # イラストの表示
-st.image("C:/Users/kanik/Downloads/canvas__4_-removebg-preview.png", width=130)
+st.image(str(image_path), width=130)
 
 import streamlit as st
 
