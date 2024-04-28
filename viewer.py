@@ -19,7 +19,7 @@ def get_request(url):
 
 # Using "with" notation
 with st.sidebar:
-    add_radio = st.radio("メニュー", ("投稿する", "全ての投稿を見る", "詳細"))
+    add_radio = st.sidebar.selectbox("メニュー", ("投稿する", "全ての投稿を見る", "詳細"))
 
 
 if add_radio == "投稿する":
