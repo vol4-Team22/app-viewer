@@ -96,12 +96,18 @@ if add_radio == "全ての投稿を見る":
             detail_url = f"http://localhost:18000/post/{post['post_id']}"
             detail_result = get_request(detail_url)
             detail = json.loads(detail_result)
+            with st.chat_message("user"):
+                # 取得した詳細を表示
+                st.markdown(f"""
+                <div class="custom-content">
+                    <h5>{detail['title']}</h5>
+                    <p> {detail['comment']}</p>
+                </div>
+                """, unsafe_allow_html=True)
 
-            # 取得した詳細を表示
-            st.write(f"Title: {detail['title']}")
-            st.write(f"Comment: {detail['comment']}")
-            st.write(f"Created: {detail['created']}")
-            st.write(f"Modified: {detail['modified']}")
+
+            # st.write(f"Created: {detail['created']}")
+            # st.write(f"Modified: {detail['modified']}")
     # イラストの表示
     # st.image("image\src\canvas__4_-removebg-preview.webp", width=130)
 
