@@ -4,7 +4,7 @@ import json
 import uuid
 
 
-    # GETリクエストを送信する関数
+# GETリクエストを送信する関数
 def get_request(url):
     try:
         response = requests.get(url)
@@ -12,34 +12,30 @@ def get_request(url):
         if response.status_code == 200:
             return response.text
         else:
-            return f'Error: {response.status_code}'
+            return f"Error: {response.status_code}"
     except Exception as e:
-        return f'Error: {e}'
+        return f"Error: {e}"
+
 
 # Using "with" notation
 with st.sidebar:
-    add_radio = st.radio(
-        "メニュー",
-        ("投稿する", "全ての投稿を見る","詳細")
-    )
+    add_radio = st.radio("メニュー", ("投稿する", "全ての投稿を見る", "詳細"))
 
 
-
-if add_radio=="投稿する":
-
+if add_radio == "投稿する":
     # POSTリクエストを送信する関数
     def post_user_input(url, payload):
         try:
-            headers = {'Content-Type': 'application/json'}
+            headers = {"Content-Type": "application/json"}
             response = requests.post(url, data=json.dumps(payload), headers=headers)
             # レスポンスが成功したかどうかを確認
             if response.status_code == 200:
                 return response.text
             else:
-                return f'Error: {response.status_code}'
+                return f"Error: {response.status_code}"
         except Exception as e:
-            return f'Error: {e}'
-        
+            return f"Error: {e}"
+
     st.title("投稿画面")
 
     post_title = st.text_area("概要・題名")
@@ -48,22 +44,30 @@ if add_radio=="投稿する":
     if st.button("投稿する"):
         # ここで投稿の処理を行う（例えば、データベースに保存するなど）
         # POSTリクエストに含めるデータ
-        payload = {
-            "title": post_title,
-            "comment": post_comment
-        }
+        payload = {"title": post_title, "comment": post_comment,}
         # ユーザーが入力したURL
-        url = 'http://localhost:18000/post'
+        url = "http://localhost:18000/post"
         result = post_user_input(url, payload)
-        st.text('レスポンス:')
+        st.text("レスポンス:")
+        st.write(result)
+
+        st.success("投稿が成功しました！")
+
+    post_id = st.number_input("投稿ID", min_value=0, max_value=100, step=1)
+    if st.button("リプライ"):
+        # ここで投稿の処理を行う（例えば、データベースに保存するなど）
+        # POSTリクエストに含めるデータ
+        payload = {"title": post_title, "comment": post_comment,"post_id": post_id,}
+        # ユーザーが入力したURL
+        url = "http://localhost:18000/reply"
+        result = post_user_input(url, payload)
+        st.text("レスポンス:")
         st.write(result)
 
         st.success("投稿が成功しました！")
 
 
-if add_radio=="全ての投稿を見る":
-
-        
+if add_radio == "全ての投稿を見る":
     # セッションステートの初期化
     if "data_json" not in st.session_state:
         st.session_state["data_json"] = []
@@ -71,18 +75,17 @@ if add_radio=="全ての投稿を見る":
         st.session_state["data_detail"] = []
 
     # GETリクエストにより全ての投稿を取得
-    url = 'http://localhost:18000/list'
+    url = "http://localhost:18000/list"
     result = get_request(url)
     st.session_state["data_json"] = json.loads(result)
 
     # 投稿の詳細を取得
-    lengh_post=len(st.session_state["data_json"])
-    test_list=[]
+    lengh_post = len(st.session_state["data_json"])
+    test_list = []
     for i in range(lengh_post):
-        result_02=get_request(f"http://localhost:18000/post/{i+1}")
+        result_02 = get_request(f"http://localhost:18000/post/{i+1}")
         test_list.append(json.loads(result_02))
-    st.session_state["data_detail"]=test_list
-    
+    st.session_state["data_detail"] = test_list
 
     # タイトルの表示
     st.markdown(
@@ -91,11 +94,10 @@ if add_radio=="全ての投稿を見る":
             日常課題をみっけしよう！
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
     # イラストの表示
     st.image("image\src\canvas__4_-removebg-preview.webp", width=130)
-
 
     button_css = f"""
     <style>
@@ -110,25 +112,36 @@ if add_radio=="全ての投稿を見る":
     # CSSを適用するためのmarkdown
     st.markdown(button_css, unsafe_allow_html=True)
 
-
- 
-
-    posts= st.session_state["data_detail"]
+    posts = st.session_state["data_detail"]
 
     for post in posts:
-        st.markdown(f"<div style='background-color: #fff7ca; padding: 8px; border-radius: 6px;'><h1 style='font-size: 24px;'>{post['title']}</h1></div>", unsafe_allow_html=True)
+        st.markdown(
+            f"<div style='background-color: #fff7ca; padding: 8px; border-radius: 6px;'><h1 style='font-size: 24px;'>{post['title']}</h1></div>",
+            unsafe_allow_html=True,
+        )
         st.empty()  # 空のコンポーネントを追加
-        st.write(post['comment'])
+        st.write(post["comment"])
         # 一意のキーを生成
         button_key = str(uuid.uuid4())
+
+        reply_url = f"http://localhost:18000/reply/list/{post['post_id']}"
+        reply_result = get_request(reply_url)
+        reply_result = json.loads(reply_result)
+
+        for i in range(len(reply_result)):
+            st.divider()
+            st.write(f"返信{i+1}")
+            st.write(reply_result[i]["title"])
+            st.write(reply_result[i]["comment"])
+
+
+        st.divider()
         # クリックで内容を表示
-        if st.button("内容を表示", key=button_key):
-            st.write(post['comment'])
+        # if st.button("内容を表示", key=button_key):
+        #     st.write(post["comment"])
 
 
-if add_radio=="詳細":
-
-        
+if add_radio == "詳細":
     btn = st.button("←")
 
     st.title("概要・題名")
@@ -144,29 +157,24 @@ if add_radio=="詳細":
     """
     st.markdown(style, unsafe_allow_html=True)
 
-    user_input_id=st.number_input("投稿ID", min_value=0, max_value=100, step=1)
+    user_input_id = st.number_input("投稿ID", min_value=0, max_value=100, step=1)
     if st.button("キーの詳細テスト"):
-        detail_url=f"http://localhost:18000/post/{user_input_id}"
+        detail_url = f"http://localhost:18000/post/{user_input_id}"
         detail_result = get_request(detail_url)
-        detail_result=json.loads(detail_result)
-        st.markdown(f"<div style='background-color: #fff7ca; padding: 8px; border-radius: 6px;'><h1 style='font-size: 24px;'>{detail_result['title']}</h1></div>", unsafe_allow_html=True)
-        st.write(detail_result['comment'])
+        detail_result = json.loads(detail_result)
 
+        st.markdown(
+            f"<div style='background-color: #fff7ca; padding: 8px; border-radius: 6px;'><h1 style='font-size: 24px;'>{detail_result['title']}</h1></div>",
+            unsafe_allow_html=True,
+        )
+        st.write(detail_result["comment"])
 
-        reply_url=f"http://localhost:18000/reply/list/{user_input_id}"
+        reply_url = f"http://localhost:18000/reply/list/{user_input_id}"
         reply_result = get_request(reply_url)
-        reply_result=json.loads(reply_result)
+        reply_result = json.loads(reply_result)
+
         for i in range(len(reply_result)):
             st.write(f"返信{i+1}")
-            st.write(reply_result[i]['title'])
-            st.write(reply_result[i]['comment'])
+            st.write(reply_result[i]["title"])
+            st.write(reply_result[i]["comment"])
             st.divider()
-
-
-
-
-
-
-
-
-
