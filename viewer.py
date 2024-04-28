@@ -36,10 +36,33 @@ if add_radio == "投稿する":
         except Exception as e:
             return f"Error: {e}"
 
-    st.title("投稿画面")
+    st.image("image\src\mikke_logo.jpg", width=260)
+    # Google Fontsからフォントをロード
+    font_link = 'https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500&display=swap'
+    st.markdown(f'<link href="{font_link}" rel="stylesheet">', unsafe_allow_html=True)
+
+    # カスタムスタイルとテキストを適用
+    st.markdown("""
+    <style>
+    .custom-text {
+        font-family: 'M PLUS Rounded 1c', sans-serif; /* Rounded Mplus 1c Mediumに似たフォント */
+        font-size: 40px; /* フォントサイズ設定 */
+        background: #fff7ca; /* 背景色設定 */
+        text-align: center; /* 中央揃え */
+        padding: 0px; /* パディング設定 */
+        margin-bottom: 30px; /* マージン設定 */
+        border-radius: 15px; /* 角を丸くする */
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* 影をつける */
+    }
+    </style>
+    <div class="custom-text">
+        日常の課題を投稿してみよう！
+    </div>
+    """, unsafe_allow_html=True)
 
     post_title = st.text_area("概要・題名")
     post_comment = st.text_area("投稿内容を入力してください")
+  
 
     if st.button("投稿する"):
         # ここで投稿の処理を行う（例えば、データベースに保存するなど）
@@ -50,21 +73,6 @@ if add_radio == "投稿する":
         result = post_user_input(url, payload)
         st.text("レスポンス:")
         st.write(result)
-
-        st.success("投稿が成功しました！")
-
-    post_id = st.number_input("投稿ID", min_value=0, max_value=100, step=1)
-    if st.button("リプライ"):
-        # ここで投稿の処理を行う（例えば、データベースに保存するなど）
-        # POSTリクエストに含めるデータ
-        payload = {"title": post_title, "comment": post_comment, "post_id": post_id,}
-        # ユーザーが入力したURL
-        url = "http://localhost:18000/reply"
-        result = post_user_input(url, payload)
-        st.text("レスポンス:")
-        st.write(result)
-
-        st.success("投稿が成功しました！")
 
 
 if add_radio == "全ての投稿を見る":
